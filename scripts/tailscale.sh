@@ -36,7 +36,7 @@ log_step() {
 show_banner() {
     echo "🔒 =================================="
     echo "🔒  Cyber Proxmox Tailscale VM Setup"
-    echo "🔒  Version: 2.1.0 (2025-09-02)"
+    echo "🔒  Version: 2.1.2 (2025-09-02)"
     echo "🔒 =================================="
     echo ""
     echo "📋 Ce script va installer :"

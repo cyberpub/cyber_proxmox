@@ -3,12 +3,12 @@
 # Cyber Proxmox Django VM Installation Script (Modular Version)
 # Compatible with Ubuntu 24.04 Server
 # Uses modular functions for better maintainability
-# Version: 2.1.0
+# Version: 2.1.2
 
 set -e  # Exit on any error
 
 # Installation version and info
-SCRIPT_VERSION="2.1.0"
+SCRIPT_VERSION="2.1.2"
 SCRIPT_DATE="2025-09-02"
 
 # Script directory
