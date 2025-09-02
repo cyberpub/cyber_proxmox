@@ -108,7 +108,9 @@ source_functions() {
         # Download function if not already present locally
         if [ ! -f "$FUNCTIONS_DIR/$func" ] && [ ! -f "$func_path" ]; then
             log_info "Downloading function: $func"
-            if curl -fsSL "https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/functions/$func" -o "$func_path"; then
+            # Add timestamp to avoid cache issues
+            local timestamp=$(date +%s)
+            if curl -H "Cache-Control: no-cache" -H "Pragma: no-cache" -fsSL "https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/functions/$func?v=$timestamp" -o "$func_path"; then
                 source "$func_path"
             else
                 log_warn "Failed to download function: $func"
