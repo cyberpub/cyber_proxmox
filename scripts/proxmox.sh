@@ -3,7 +3,12 @@
 # Cloudflare Tunnel Installation for Proxmox
 # This script installs cloudflared directly on Proxmox OS
 
-set -e  # Exit on any error
+# Enable debug mode
+set -x  # Show commands being executed
+
+echo "🌐 Cloudflare Tunnel Installation Script Started"
+echo "Arguments received: $@"
+echo "Number of arguments: $#"
 
 # Colors for output
 RED='\033[0;31m'
@@ -33,6 +38,7 @@ install_cloudflare_tunnel() {
     local token="$1"
     
     echo "🌐 Starting Cloudflare Tunnel installation on Proxmox..."
+    echo "Token received: ${token:0:20}..." # Show only first 20 chars for security
     
     # Validate token parameter
     if [ -z "$token" ]; then
@@ -146,6 +152,8 @@ show_help() {
 
 # Main execution
 main() {
+    echo "🔧 Main function called with arguments: $@"
+    
     # Check if help is requested
     if [[ "$1" == "-h" || "$1" == "--help" || "$1" == "help" ]]; then
         show_help
