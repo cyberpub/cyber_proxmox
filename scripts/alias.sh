@@ -1,0 +1,1 @@
+alias myip='function _myip(){ ip a | grep ${1:-10}; }; _myip'
