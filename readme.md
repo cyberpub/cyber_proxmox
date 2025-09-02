@@ -94,6 +94,18 @@ chmod +x tailscale.sh
 ./tailscale.sh
 ```
 
+### ☁️ **Proxmox Cloudflare Tunnel**
+
+```bash
+# Installation directe sur l'OS Proxmox (nécessite le token Cloudflare)
+curl -fsSL https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/scripts/proxmox.sh | sudo bash -s YOUR_CLOUDFLARE_TOKEN
+
+# Ou téléchargement puis exécution
+wget https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/scripts/proxmox.sh
+chmod +x proxmox.sh
+sudo ./proxmox.sh YOUR_CLOUDFLARE_TOKEN
+```
+
 ### 🔧 **Utilisation des fonctions individuelles**
 
 ```bash
