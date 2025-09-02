@@ -45,9 +45,26 @@ source_functions() {
         "configure_aliases.sh"
     )
     
+    # Create temporary functions directory
+    mkdir -p /tmp/cyber_proxmox_functions
+    
     for func in "${functions[@]}"; do
-        if [ -f "$FUNCTIONS_DIR/$func" ]; then
+        local func_path="/tmp/cyber_proxmox_functions/$func"
+        
+        # Download function if not already present locally
+        if [ ! -f "$FUNCTIONS_DIR/$func" ] && [ ! -f "$func_path" ]; then
+            log_info "Downloading function: $func"
+            if curl -fsSL "https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/functions/$func" -o "$func_path"; then
+                source "$func_path"
+            else
+                log_warn "Failed to download function: $func"
+            fi
+        elif [ -f "$FUNCTIONS_DIR/$func" ]; then
+            # Use local version if available
             source "$FUNCTIONS_DIR/$func"
+        elif [ -f "$func_path" ]; then
+            # Use downloaded version
+            source "$func_path"
         else
             log_warn "Function file not found: $func"
         fi
