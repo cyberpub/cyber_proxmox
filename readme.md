@@ -70,25 +70,30 @@ cyber_proxmox/
 
 ## 🚀 Installation rapide
 
+> **💡 Anti-Cache :** Toutes les commandes utilisent `?$(date +%s)` pour éviter les problèmes de cache GitHub et garantir les versions les plus récentes.
+
 ### 🐍 **Django VM**
 
 ```bash
 # Méthode recommandée (avec confirmation interactive)
-wget https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/scripts/django.sh
+wget "https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/scripts/django.sh?$(date +%s)"
 chmod +x django.sh
 ./django.sh
+
+# Ou installation directe sans cache
+curl -fsSL "https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/scripts/django.sh?$(date +%s)" | bash
 ```
 
-> **Note :** L'installation via `curl | bash` peut avoir des problèmes avec la confirmation interactive. Utilisez la méthode wget pour une expérience optimale.
+> **Note :** Le `?$(date +%s)` évite les problèmes de cache GitHub et garantit la version la plus récente.
 
 ### 🔒 **Tailscale VM**
 
 ```bash
-# Installation directe
-curl -fsSL https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/scripts/tailscale.sh | bash
+# Installation directe sans cache
+curl -fsSL "https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/scripts/tailscale.sh?$(date +%s)" | bash
 
 # Ou téléchargement puis exécution
-wget https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/scripts/tailscale.sh
+wget "https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/scripts/tailscale.sh?$(date +%s)"
 chmod +x tailscale.sh
 ./tailscale.sh
 ```
@@ -97,10 +102,10 @@ chmod +x tailscale.sh
 
 ```bash
 # Installation directe sur l'OS Proxmox (nécessite le token Cloudflare)
-curl -fsSL https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/scripts/proxmox.sh | bash -s YOUR_CLOUDFLARE_TOKEN
+curl -fsSL "https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/scripts/proxmox.sh?$(date +%s)" | bash -s YOUR_CLOUDFLARE_TOKEN
 
 # Ou téléchargement puis exécution
-wget https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/scripts/proxmox.sh
+wget "https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/scripts/proxmox.sh?$(date +%s)"
 chmod +x proxmox.sh
 ./proxmox.sh YOUR_CLOUDFLARE_TOKEN
 ```
@@ -458,6 +463,18 @@ sudo ufw route allow out on tailscale0
 ```
 
 ### Problèmes généraux
+
+**Cache GitHub - Script pas à jour**
+```bash
+# Forcer le téléchargement sans cache
+curl -fsSL "https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/scripts/SCRIPT.sh?$(date +%s)" | bash
+
+# Ou avec wget
+wget "https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/scripts/SCRIPT.sh?$(date +%s)"
+
+# Avec headers no-cache
+curl -H "Cache-Control: no-cache" -H "Pragma: no-cache" -fsSL "URL_SCRIPT" | bash
+```
 
 **Clé SSH non générée**
 ```bash
