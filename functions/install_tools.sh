@@ -10,17 +10,18 @@ install_essential_tools() {
     
     # Essential system tools
     local tools=(
-        "htop"          # System monitoring
-        "curl"          # HTTP client
-        "wget"          # File downloader
-        "net-tools"     # Network utilities
-        "tree"          # Directory tree viewer
-        "ncdu"          # Disk usage analyzer
-        "git"           # Version control
-        "nano"          # Text editor
-        "vim"           # Advanced text editor
-        "unzip"         # Archive extractor
-        "jq"            # JSON processor
+        "htop"              # System monitoring
+        "curl"              # HTTP client
+        "wget"              # File downloader
+        "net-tools"         # Network utilities
+        "tree"              # Directory tree viewer
+        "ncdu"              # Disk usage analyzer
+        "git"               # Version control
+        "nano"              # Text editor
+        "vim"               # Advanced text editor
+        "unzip"             # Archive extractor
+        "jq"                # JSON processor
+        "cloud-guest-utils" # Contains growpart for disk extension
     )
     
     # Install tools

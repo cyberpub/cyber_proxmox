@@ -95,9 +95,9 @@ main() {
     log_step "Installing Docker..."
     install_docker
     
-    # 5. Extend drive (LVM)
+    # 5. Extend drive (LVM) - Continue even if it fails
     log_step "Extending drive..."
-    extend_lvm
+    extend_lvm || log_warn "Drive extension failed, continuing with installation..."
     
     # 6. Configure swap file
     log_step "Configuring swap..."

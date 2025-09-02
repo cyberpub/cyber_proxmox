@@ -16,25 +16,41 @@ extend_lvm() {
     
     echo -e "\033[0;32m${log_prefix}\033[0m LVM detected, extending logical volume..."
     
-    # Get the main disk device (usually sda)
-    MAIN_DISK=$(lsblk -no pkname /dev/mapper/ubuntu--vg-ubuntu--lv | head -1)
-    PARTITION_NUM=$(lsblk -no name /dev/mapper/ubuntu--vg-ubuntu--lv | grep -o '[0-9]*$' | head -1)
+    # Get the main disk device and partition number
+    # Find the physical volume backing the LVM
+    PV_DEVICE=$(sudo pvs --noheadings -o pv_name | tr -d ' ' | head -1)
     
-    if [ -z "$PARTITION_NUM" ]; then
-        PARTITION_NUM=3  # Default to partition 3 for Ubuntu LVM
+    if [ -z "$PV_DEVICE" ]; then
+        echo -e "\033[1;33m${log_prefix}\033[0m Could not detect physical volume, trying default..."
+        # Fallback: try to detect main disk
+        MAIN_DISK=$(lsblk -no name,type | grep disk | head -1 | awk '{print $1}')
+        PARTITION_NUM=3
+        PARTITION="/dev/${MAIN_DISK}${PARTITION_NUM}"
+    else
+        # Extract disk name and partition number from PV device
+        MAIN_DISK=$(echo "$PV_DEVICE" | sed 's/[0-9]*$//')
+        PARTITION_NUM=$(echo "$PV_DEVICE" | grep -o '[0-9]*$')
+        PARTITION="$PV_DEVICE"
     fi
-    
-    PARTITION="/dev/${MAIN_DISK}${PARTITION_NUM}"
     
     echo -e "\033[0;32m${log_prefix}\033[0m Extending partition ${PARTITION}..."
     
     # Extend the partition using parted
-    sudo parted /dev/${MAIN_DISK} ---pretend-input-tty <<EOF
+    echo -e "\033[0;32m${log_prefix}\033[0m Using disk: ${MAIN_DISK}, partition: ${PARTITION_NUM}"
+    
+    # Use growpart if available (more reliable)
+    if command -v growpart >/dev/null 2>&1; then
+        echo -e "\033[0;32m${log_prefix}\033[0m Using growpart to extend partition..."
+        sudo growpart ${MAIN_DISK} ${PARTITION_NUM}
+    else
+        echo -e "\033[0;32m${log_prefix}\033[0m Using parted to extend partition..."
+        sudo parted ${MAIN_DISK} ---pretend-input-tty <<EOF
 resizepart ${PARTITION_NUM}
 100%
 Yes
 quit
 EOF
+    fi
 
     if [ $? -ne 0 ]; then
         echo -e "\033[0;31m${log_prefix}\033[0m Failed to extend partition"
