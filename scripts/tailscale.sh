@@ -140,11 +140,27 @@ install_tailscale() {
         echo -e "\033[1;33m${log_prefix}\033[0m Starting Tailscale to get authentication URL..."
         echo -e "\033[0;32m${log_prefix}\033[0m Running: sudo tailscale up"
         echo ""
+        echo "🔗 =============================================="
+        echo "🔗  AUTHENTICATION URL WILL APPEAR BELOW"
+        echo "🔗 =============================================="
+        echo ""
         
-        # Start Tailscale and capture the output to show the authentication URL
+        # Start Tailscale to get the authentication URL
         sudo tailscale up
         
         echo ""
+        echo "🔗 =============================================="
+        echo "🔗  COPY THE URL ABOVE TO AUTHENTICATE"
+        echo "🔗 =============================================="
+        echo ""
+        
+        # Enable Tailscale to start at boot
+        echo -e "\033[0;32m${log_prefix}\033[0m Enabling Tailscale to start at boot..."
+        sudo systemctl enable tailscaled
+        
+        # Ensure Tailscale starts up automatically after authentication
+        echo -e "\033[0;32m${log_prefix}\033[0m Configuring automatic startup..."
+        
         echo -e "\033[0;32m${log_prefix}\033[0m Tailscale setup completed!"
         echo -e "\033[1;33m${log_prefix}\033[0m Additional configuration options:"
         echo "  • For subnet routing: sudo tailscale up --advertise-routes=YOUR_SUBNET"
