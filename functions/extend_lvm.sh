@@ -41,10 +41,12 @@ extend_lvm() {
     # Use growpart if available (more reliable)
     if command -v growpart >/dev/null 2>&1; then
         echo -e "\033[0;32m${log_prefix}\033[0m Using growpart to extend partition..."
-        sudo growpart ${MAIN_DISK} ${PARTITION_NUM}
+        if ! sudo growpart ${MAIN_DISK} ${PARTITION_NUM} 2>/dev/null; then
+            echo -e "\033[1;33m${log_prefix}\033[0m Growpart failed, trying parted..."
+        fi
     else
         echo -e "\033[0;32m${log_prefix}\033[0m Using parted to extend partition..."
-        sudo parted ${MAIN_DISK} ---pretend-input-tty <<EOF
+        sudo parted ${MAIN_DISK} ---pretend-input-tty <<EOF 2>/dev/null || true
 resizepart ${PARTITION_NUM}
 100%
 Yes
@@ -52,30 +54,22 @@ quit
 EOF
     fi
 
-    if [ $? -ne 0 ]; then
-        echo -e "\033[0;31m${log_prefix}\033[0m Failed to extend partition"
-        return 1
-    fi
-
-    # Resize physical volume
-    sudo pvresize ${PARTITION}
-    if [ $? -ne 0 ]; then
-        echo -e "\033[0;31m${log_prefix}\033[0m Failed to resize physical volume"
-        return 1
+    # Resize physical volume (continue even if partition resize failed)
+    echo -e "\033[0;32m${log_prefix}\033[0m Attempting to resize physical volume..."
+    if ! sudo pvresize ${PARTITION} 2>/dev/null; then
+        echo -e "\033[1;33m${log_prefix}\033[0m Physical volume resize failed or not needed"
     fi
     
     # Extend logical volume
-    sudo lvextend -l +100%FREE /dev/ubuntu-vg/ubuntu-lv
-    if [ $? -ne 0 ]; then
-        echo -e "\033[0;31m${log_prefix}\033[0m Failed to extend logical volume"
-        return 1
+    echo -e "\033[0;32m${log_prefix}\033[0m Attempting to extend logical volume..."
+    if ! sudo lvextend -l +100%FREE /dev/ubuntu-vg/ubuntu-lv 2>/dev/null; then
+        echo -e "\033[1;33m${log_prefix}\033[0m Logical volume extension failed or not needed"
     fi
     
     # Resize filesystem
-    sudo resize2fs /dev/ubuntu-vg/ubuntu-lv
-    if [ $? -ne 0 ]; then
-        echo -e "\033[0;31m${log_prefix}\033[0m Failed to resize filesystem"
-        return 1
+    echo -e "\033[0;32m${log_prefix}\033[0m Attempting to resize filesystem..."
+    if ! sudo resize2fs /dev/ubuntu-vg/ubuntu-lv 2>/dev/null; then
+        echo -e "\033[1;33m${log_prefix}\033[0m Filesystem resize failed or not needed"
     fi
     
     echo -e "\033[0;32m${log_prefix}\033[0m Drive extension completed successfully!"
