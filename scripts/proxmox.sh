@@ -141,7 +141,7 @@ show_help() {
     echo "4. Copy the token from the installation command"
     echo ""
     echo "Remote installation:"
-    echo "  curl -fsSL https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/container_scripts/proxmox.sh | bash -s YOUR_TOKEN"
+    echo "  curl -fsSL https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/scripts/proxmox.sh | bash -s YOUR_TOKEN"
 }
 
 # Main execution
@@ -154,7 +154,9 @@ main() {
     
     # Check if running as root
     if [[ $EUID -ne 0 ]]; then
-        log_error "This script must be run as root (use sudo)"
+        log_error "This script must be run as root"
+        log_error "On Proxmox, you should already be root"
+        log_error "On other systems, use: sudo $0 $*"
         exit 1
     fi
     

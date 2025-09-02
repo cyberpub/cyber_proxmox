@@ -98,13 +98,15 @@ chmod +x tailscale.sh
 
 ```bash
 # Installation directe sur l'OS Proxmox (nécessite le token Cloudflare)
-curl -fsSL https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/scripts/proxmox.sh | sudo bash -s YOUR_CLOUDFLARE_TOKEN
+curl -fsSL https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/scripts/proxmox.sh | bash -s YOUR_CLOUDFLARE_TOKEN
 
 # Ou téléchargement puis exécution
 wget https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/scripts/proxmox.sh
 chmod +x proxmox.sh
-sudo ./proxmox.sh YOUR_CLOUDFLARE_TOKEN
+./proxmox.sh YOUR_CLOUDFLARE_TOKEN
 ```
+
+**Note :** Sur Proxmox, vous êtes déjà root, donc pas besoin de `sudo`.
 
 ### 🔧 **Utilisation des fonctions individuelles**
 
@@ -199,6 +201,11 @@ curl -fsSL https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/contain
 - **Accès** : Utilisateur avec privilèges sudo
 - **Réseau** : Connexion Internet active
 - **Proxmox** : VM avec espace disque étendu si nécessaire
+
+### Spécifiques Proxmox Cloudflare
+- **OS** : Proxmox VE (accès root direct)
+- **Token** : Token Cloudflare Tunnel valide
+- **Réseau** : Accès Internet pour téléchargement et connexion Cloudflare
 
 ### Spécifiques Django VM
 - **RAM** : Minimum 2GB (4GB recommandés)
