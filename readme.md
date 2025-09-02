@@ -172,16 +172,18 @@ curl -fsSL https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/contain
 curl -fsSL https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/container_scripts/proxy_stack.sh | bash -s traefik
 ```
 
-### ☁️ **Cloudflare Tunnel** - Installation sur Proxmox
+### ☁️ **Cloudflare Tunnel Stack** - Version containerisée
 
 ```bash
-# Installation directe sur l'OS Proxmox (nécessite le token Cloudflare)
-curl -fsSL https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/container_scripts/proxmox.sh | sudo bash -s YOUR_CLOUDFLARE_TOKEN
+# Créer une stack Cloudflare Tunnel containerisée
+curl -fsSL https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/container_scripts/cloudflared_stack.sh | bash -s my-tunnel YOUR_CLOUDFLARE_TOKEN
 
-# Ou téléchargement puis exécution
-wget https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/container_scripts/proxmox.sh
-chmod +x proxmox.sh
-sudo ./proxmox.sh YOUR_CLOUDFLARE_TOKEN
+# Contenu généré :
+# ├── docker-compose.yml    # Cloudflared + exemple web
+# ├── manage.sh            # Scripts de gestion (start/stop/logs/status)
+# ├── html/               # Contenu web d'exemple
+# ├── .env.example        # Variables d'environnement
+# └── README.md           # Documentation de la stack
 ```
 
 **Pour obtenir votre token Cloudflare :**
@@ -341,7 +343,7 @@ cyber_proxmox/
 │   ├── monitoring_stack.sh    # Stack Prometheus + Grafana + exporters
 │   ├── database_stack.sh      # Stacks PostgreSQL/MySQL/Redis
 │   ├── proxy_stack.sh         # Stacks Nginx/Traefik avec SSL
-│   └── proxmox.sh            # Installation Cloudflare Tunnel sur Proxmox
+│   └── cloudflared_stack.sh   # Stack Cloudflare Tunnel containerisé
 └── readme.md                  # Documentation complète
 ```
 
