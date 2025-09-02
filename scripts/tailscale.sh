@@ -359,7 +359,7 @@ display_summary() {
     echo "  ✅ Timezone set to America/Montreal"
     echo "  ✅ Essential tools installed (htop, curl, wget, git, nano, vim, make, etc.)"
     echo "  ✅ Network diagnostic tools installed (tcpdump, nmap, mtr, netcat, dig, etc.)"
-    echo "  ✅ Tailscale VPN installed and configured"
+    echo "  ✅ Tailscale VPN installed, configured and enabled at boot"
     echo "  ✅ Drive extended (if LVM detected)"
     echo "  ✅ SSH key generated"
     echo "  ✅ IP forwarding enabled for subnet routing"
