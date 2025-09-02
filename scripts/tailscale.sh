@@ -33,6 +33,62 @@ log_step() {
     echo -e "${BLUE}[STEP]${NC} $1"
 }
 
+show_banner() {
+    echo "🔒 =================================="
+    echo "🔒  Cyber Proxmox Tailscale VM Setup"
+    echo "🔒  Version: 2.1.0 (2025-09-02)"
+    echo "🔒 =================================="
+    echo ""
+    echo "📋 Ce script va installer :"
+    echo "  ✅ Mise à jour du système"
+    echo "  ✅ Configuration timezone (America/Montreal)"
+    echo "  ✅ Outils essentiels (htop, curl, wget, etc.)"
+    echo "  ✅ Outils diagnostic réseau (tcpdump, nmap, mtr, etc.)"
+    echo "  ✅ Tailscale VPN"
+    echo "  ✅ Configuration IP forwarding"
+    echo "  ✅ Configuration firewall (UFW)"
+    echo "  ✅ Génération clé SSH"
+    echo "  ✅ Aliases réseau utiles"
+    echo "  ✅ Scripts d'aide Tailscale"
+    echo ""
+}
+
+confirm_installation() {
+    # Check if we can read from terminal (not piped from curl)
+    if [ -t 0 ]; then
+        echo -n "🤔 Voulez-vous continuer avec l'installation ? (y/N): "
+        read -r response
+        case "$response" in
+            [yY][eE][sS]|[yY]|[oO][uU][iI]|[oO])
+                echo "✅ Installation confirmée !"
+                return 0
+                ;;
+            *)
+                echo "❌ Installation annulée."
+                exit 0
+                ;;
+        esac
+    else
+        # When piped from curl, auto-confirm with a delay
+        echo "🤔 Voulez-vous continuer avec l'installation ? (y/N): "
+        echo "⏳ Exécution via curl détectée - démarrage automatique dans 5 secondes..."
+        echo "   (Appuyez Ctrl+C pour annuler)"
+        sleep 5
+        echo "✅ Installation confirmée automatiquement !"
+        return 0
+    fi
+}
+
+init_sudo() {
+    log_info "Initialisation des privilèges sudo..."
+    if sudo ls /root >/dev/null 2>&1; then
+        log_info "Privilèges sudo activés ✅"
+    else
+        log_error "Impossible d'obtenir les privilèges sudo"
+        exit 1
+    fi
+}
+
 # Source function modules
 source_functions() {
     local functions=(
@@ -69,24 +125,7 @@ source_functions() {
     done
 }
 
-# Install Tailscale
-install_tailscale() {
-    local log_prefix="[TAILSCALE]"
-    
-    echo -e "\033[0;32m${log_prefix}\033[0m Installing Tailscale..."
-    
-    # Add Tailscale's package signing key and repository
-    curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/noble.noarmor.gpg | sudo tee /usr/share/keyrings/tailscale-archive-keyring.gpg >/dev/null
-    curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/noble.tailscale-keyring.list | sudo tee /etc/apt/sources.list.d/tailscale.list
-    
-    # Install Tailscale
-    sudo apt update
-    sudo apt install -y tailscale
-    
-    echo -e "\033[0;32m${log_prefix}\033[0m Tailscale installed successfully!"
-    
-    return 0
-}
+# Tailscale installation is now handled by the modular function install_tailscale.sh
 
 # Configure IP forwarding
 configure_ip_forwarding() {
@@ -198,6 +237,20 @@ EOF
 
 # Main installation function
 main() {
+    # Show banner and get confirmation (unless --yes flag is used)
+    show_banner
+    
+    # Check for --yes or -y flag to skip confirmation
+    if [[ "$1" == "--yes" ]] || [[ "$1" == "-y" ]]; then
+        echo "✅ Installation confirmée via paramètre --yes"
+    else
+        confirm_installation
+    fi
+    
+    # Initialize sudo early
+    init_sudo
+    
+    echo ""
     echo "🔒 Starting Cyber Proxmox Tailscale VM setup (Modular)..."
     
     # Source all function modules
@@ -212,8 +265,11 @@ main() {
     log_step "Configuring timezone..."
     configure_timezone "America/Montreal"
     
-    # 3. Install network tools
-    log_step "Installing network tools..."
+    # 3. Install essential and network tools
+    log_step "Installing essential tools..."
+    install_essential_tools
+    
+    log_step "Installing network diagnostic tools..."
     install_network_tools
     
     # 4. Install Tailscale
@@ -254,14 +310,15 @@ display_summary() {
     echo "📋 Summary:"
     echo "  ✅ System updated and upgraded"
     echo "  ✅ Timezone set to America/Montreal"
-    echo "  ✅ Network tools installed"
-    echo "  ✅ Tailscale installed"
+    echo "  ✅ Essential tools installed (htop, curl, wget, git, nano, vim, make, etc.)"
+    echo "  ✅ Network diagnostic tools installed (tcpdump, nmap, mtr, netcat, dig, etc.)"
+    echo "  ✅ Tailscale VPN installed and configured"
     echo "  ✅ Drive extended (if LVM detected)"
     echo "  ✅ SSH key generated"
-    echo "  ✅ IP forwarding enabled"
-    echo "  ✅ Firewall configured"
-    echo "  ✅ Network aliases added"
-    echo "  ✅ Helper scripts created"
+    echo "  ✅ IP forwarding enabled for subnet routing"
+    echo "  ✅ Firewall configured (UFW)"
+    echo "  ✅ Network aliases added (ts, tsstatus, tsip, myip, etc.)"
+    echo "  ✅ Helper scripts created (ts-setup, net-diag)"
     echo ""
     echo "🕐 Current time: $(date)"
     echo "🌍 Timezone: $(timedatectl show --property=Timezone --value)"
@@ -292,5 +349,4 @@ display_summary() {
 }
 
 # Run main function - always execute when script is run
-echo "🚀 Starting Tailscale VM installation..."
 main "$@"

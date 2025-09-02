@@ -44,14 +44,22 @@ install_network_tools() {
     
     # Network diagnostic tools
     local tools=(
-        "tcpdump"       # Network packet analyzer
-        "nmap"          # Network scanner
-        "traceroute"    # Network path tracer
-        "dnsutils"      # DNS utilities
-        "iotop"         # I/O monitoring
-        "nethogs"       # Network bandwidth monitor
-        "iftop"         # Network interface monitor
-        "vnstat"        # Network statistics
+        "tcpdump"           # Network packet analyzer
+        "nmap"              # Network scanner
+        "traceroute"        # Network path tracer
+        "dnsutils"          # DNS utilities (dig, nslookup)
+        "bind9-dnsutils"    # Additional DNS tools
+        "iotop"             # I/O monitoring
+        "nethogs"           # Network bandwidth monitor per process
+        "iftop"             # Network interface monitor
+        "vnstat"            # Network statistics
+        "wireshark-common"  # Wireshark command line tools
+        "mtr-tiny"          # Network diagnostic tool (traceroute + ping)
+        "netcat-openbsd"    # Network swiss army knife
+        "telnet"            # Telnet client for testing
+        "whois"             # Domain information lookup
+        "iputils-ping"      # Ping utilities
+        "iproute2"          # Advanced routing utilities (ip command)
     )
     
     # Install tools
