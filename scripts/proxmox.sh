@@ -3,9 +3,6 @@
 # Cloudflare Tunnel Installation for Proxmox
 # This script installs cloudflared directly on Proxmox OS
 
-# Enable debug mode
-set -x  # Show commands being executed
-
 echo "🌐 Cloudflare Tunnel Installation Script Started"
 echo "Arguments received: $@"
 echo "Number of arguments: $#"
@@ -180,7 +177,6 @@ main() {
     install_cloudflare_tunnel "$1"
 }
 
-# Run main function if script is executed directly
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    main "$@"
-fi
+# Run main function - simplified execution
+echo "🚀 Starting main function..."
+main "$@"
