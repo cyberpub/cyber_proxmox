@@ -113,7 +113,32 @@ else
     log_warn "LVM not detected, skipping drive extension. You may need to extend manually."
 fi
 
-# 6. Generate SSH key
+# 6. Configure swap file
+log_info "Configuring swap file..."
+
+# Check if swap already exists
+if swapon --show | grep -q '/swapfile'; then
+    log_warn "Swap file already exists, skipping creation"
+else
+    # Create 2GB swap file
+    sudo fallocate -l 2G /swapfile
+    sudo chmod 600 /swapfile
+    sudo mkswap /swapfile
+    sudo swapon /swapfile
+    
+    # Make swap permanent
+    if ! grep -q '/swapfile' /etc/fstab; then
+        echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+    fi
+    
+    # Optimize swap usage (swappiness = 10)
+    echo 'vm.swappiness=10' | sudo tee -a /etc/sysctl.conf
+    echo 'vm.vfs_cache_pressure=50' | sudo tee -a /etc/sysctl.conf
+    
+    log_info "2GB swap file created and configured"
+fi
+
+# 7. Generate SSH key
 log_info "Generating SSH key..."
 if [ ! -f ~/.ssh/id_rsa ]; then
     ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa -N ""
@@ -122,12 +147,12 @@ else
     log_warn "SSH key already exists, skipping generation"
 fi
 
-# 7. Create Docker directory
+# 8. Create Docker directory
 log_info "Creating ~/docker/ directory..."
 mkdir -p ~/docker
 log_info "Directory ~/docker/ created"
 
-# 8. Add useful aliases
+# 9. Add useful aliases
 log_info "Adding useful aliases..."
 
 # Network and system aliases
@@ -159,7 +184,7 @@ fi
 # Add to current session
 eval "alias myip='function _myip(){ ip a | grep \${1:-10}; }; _myip'"
 
-# 9. Display installation summary
+# 10. Display installation summary
 log_info "Django VM installation completed successfully! 🎉"
 echo ""
 echo "📋 Summary:"
@@ -168,6 +193,7 @@ echo "  ✅ Timezone set to America/Montreal"
 echo "  ✅ Essential tools installed (htop, curl, wget, net-tools, tree, ncdu)"
 echo "  ✅ Docker and Docker Compose installed"
 echo "  ✅ Drive extended (if LVM detected)"
+echo "  ✅ 2GB swap file configured"
 echo "  ✅ SSH key generated"
 echo "  ✅ ~/docker/ directory created"
 echo "  ✅ Useful aliases added"
@@ -187,6 +213,8 @@ echo "  docker-compose --version"
 echo "  htop"
 echo "  myip"
 echo "  df -h"
+echo "  free -h"
+echo "  swapon --show"
 echo ""
 echo "🐍 Ready for Django development with Docker!"
 echo "  cd ~/docker"

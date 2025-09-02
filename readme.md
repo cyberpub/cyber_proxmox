@@ -17,6 +17,7 @@ Ce projet fournit une collection de scripts d'installation modulaires qui config
 - ✅ **Outils essentiels** - htop, curl, wget, net-tools, tree, ncdu
 - ✅ **Docker & Docker Compose** - Installation complète (plugin + binaire)
 - ✅ **Extension de disque** - Détection et extension automatique LVM
+- ✅ **Swap optimisé** - 2GB avec swappiness=10 pour performances
 - ✅ **Clés SSH** - Génération RSA 4096 bits sécurisées
 - ✅ **Répertoire Docker** - Dossier `~/docker/` pour vos projets Django
 - ✅ **Aliases utiles** - myip, htop (h), ll, la, df, du, free, ports
@@ -101,9 +102,11 @@ chmod +x tailscale.sh
    df -h
    ```
 
-3. **Vérifiez le timezone et les outils** :
+3. **Vérifiez le timezone, swap et outils** :
    ```bash
    date                # Heure locale (Montreal)
+   free -h             # Mémoire et swap
+   swapon --show       # Configuration swap
    htop               # Monitoring système (alias: h)
    myip               # Adresses IP
    ```
@@ -212,6 +215,7 @@ cyber_proxmox/
 | Docker Engine | Latest | Moteur de conteneurisation |
 | Docker Compose Plugin | Latest | Orchestration de conteneurs (commande `docker compose`) |
 | Docker Compose Binary | Latest | Version standalone (commande `docker-compose`) |
+| Swap File | 2GB | Fichier swap optimisé (swappiness=10) |
 | SSH Keys | RSA 4096 | Clés de sécurité pour connexions distantes |
 | Répertoire Docker | ~/docker/ | Espace de travail pour projets Django |
 | Aliases utiles | Custom | myip, h (htop), ll, la, df, du, free, ports |
