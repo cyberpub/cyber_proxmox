@@ -371,7 +371,7 @@ cyber_proxmox/
 | `database_stack.sh` | `create_redis_stack(name)` | Redis + Redis Commander avec configuration |
 | `proxy_stack.sh` | `create_nginx_stack(name)` | Nginx reverse proxy + Let's Encrypt SSL |
 | `proxy_stack.sh` | `create_traefik_stack(name)` | Traefik avec dashboard + SSL automatique |
-| `proxmox.sh` | `install_cloudflare_tunnel(token)` | Installation Cloudflare Tunnel sur Proxmox OS |
+| `cloudflared_stack.sh` | `create_cloudflared_stack(name, token)` | Stack Cloudflare Tunnel containerisé avec exemple web |
 
 ### Extension de disque
 
