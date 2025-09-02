@@ -13,11 +13,13 @@ Ce projet fournit une collection de scripts d'installation modulaires qui config
 
 **Fonctionnalités :**
 - ✅ **Base système** - Mise à jour complète Ubuntu 24.04
+- ✅ **Timezone** - Configuré sur America/Montreal
+- ✅ **Outils essentiels** - htop, curl, wget, net-tools, tree, ncdu
 - ✅ **Docker & Docker Compose** - Installation complète (plugin + binaire)
 - ✅ **Extension de disque** - Détection et extension automatique LVM
 - ✅ **Clés SSH** - Génération RSA 4096 bits sécurisées
 - ✅ **Répertoire Docker** - Dossier `~/docker/` pour vos projets Django
-- ✅ **Alias réseau** - Commande `myip` pour diagnostics réseau
+- ✅ **Aliases utiles** - myip, htop (h), ll, la, df, du, free, ports
 
 ### 🔒 Tailscale VM (`scripts/tailscale.sh`)
 **Parfait pour :** VPN mesh, subnet routing et proxy réseau
@@ -99,7 +101,14 @@ chmod +x tailscale.sh
    df -h
    ```
 
-3. **Créez votre premier projet Django** :
+3. **Vérifiez le timezone et les outils** :
+   ```bash
+   date                # Heure locale (Montreal)
+   htop               # Monitoring système (alias: h)
+   myip               # Adresses IP
+   ```
+
+4. **Créez votre premier projet Django** :
    ```bash
    cd ~/docker
    mkdir mon-projet-django
@@ -107,7 +116,7 @@ chmod +x tailscale.sh
    # Créez votre docker-compose.yml ici
    ```
 
-4. **Récupérez votre clé SSH publique** :
+5. **Récupérez votre clé SSH publique** :
    ```bash
    cat ~/.ssh/id_rsa.pub
    ```
@@ -162,6 +171,15 @@ chmod +x tailscale.sh
   docker compose up -d
   ```
 
+- **Outils système** (Django VM) : Aliases pratiques
+  ```bash
+  h                   # htop (monitoring)
+  ll                  # ls -alF (liste détaillée)
+  df                  # df -h (espace disque)
+  free                # free -h (mémoire)
+  ports               # ss -tulpn (ports en écoute)
+  ```
+
 - **Tailscale** (Tailscale VM) : Commandes spécialisées
   ```bash
   ts-setup        # Guide de configuration
@@ -189,11 +207,14 @@ cyber_proxmox/
 #### 🐍 Django VM (`django.sh`)
 | Composant | Version | Description |
 |-----------|---------|-------------|
+| Timezone | America/Montreal | Fuseau horaire configuré pour Montréal |
+| System Tools | Latest | htop, curl, wget, net-tools, tree, ncdu |
 | Docker Engine | Latest | Moteur de conteneurisation |
 | Docker Compose Plugin | Latest | Orchestration de conteneurs (commande `docker compose`) |
 | Docker Compose Binary | Latest | Version standalone (commande `docker-compose`) |
 | SSH Keys | RSA 4096 | Clés de sécurité pour connexions distantes |
 | Répertoire Docker | ~/docker/ | Espace de travail pour projets Django |
+| Aliases utiles | Custom | myip, h (htop), ll, la, df, du, free, ports |
 
 #### 🔒 Tailscale VM (`tailscale.sh`)
 | Composant | Version | Description |

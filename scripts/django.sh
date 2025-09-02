@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# Cyber Proxmox VM Installation Script
+# Cyber Proxmox Django VM Installation Script
 # Compatible with Ubuntu 24.04 Server
-# This script will install Docker, extend drive, setup SSH keys, and configure aliases
+# This script will install Docker, extend drive, setup SSH keys, configure timezone and install tools
 
 set -e  # Exit on any error
 
-echo "🚀 Starting Cyber Proxmox VM setup..."
+echo "🐍 Starting Cyber Proxmox Django VM setup..."
 
 # Colors for output
 RED='\033[0;31m'
@@ -30,11 +30,20 @@ log_error() {
 log_info "Updating system packages..."
 sudo apt update && sudo apt upgrade -y
 
-# 2. Install Docker and Docker Compose
+# 2. Configure timezone
+log_info "Configuring timezone to America/Montreal..."
+sudo timedatectl set-timezone America/Montreal
+log_info "Timezone set to $(timedatectl show --property=Timezone --value)"
+
+# 3. Install essential tools
+log_info "Installing essential tools..."
+sudo apt install -y htop curl wget net-tools tree ncdu
+
+# 4. Install Docker and Docker Compose
 log_info "Installing Docker and Docker Compose..."
 
 # Install dependencies
-sudo apt install -y ca-certificates curl gnupg lsb-release
+sudo apt install -y ca-certificates gnupg lsb-release
 
 # Add Docker's official GPG key
 sudo install -m 0755 -d /etc/apt/keyrings
@@ -63,7 +72,7 @@ sudo chmod +x /usr/local/bin/docker-compose
 
 log_info "Docker installation completed!"
 
-# 3. Extend drive (LVM)
+# 5. Extend drive (LVM)
 log_info "Extending drive space..."
 
 # Check if we're using LVM
@@ -104,7 +113,7 @@ else
     log_warn "LVM not detected, skipping drive extension. You may need to extend manually."
 fi
 
-# 4. Generate SSH key
+# 6. Generate SSH key
 log_info "Generating SSH key..."
 if [ ! -f ~/.ssh/id_rsa ]; then
     ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa -N ""
@@ -113,46 +122,74 @@ else
     log_warn "SSH key already exists, skipping generation"
 fi
 
-# 5. Create Docker directory
+# 7. Create Docker directory
 log_info "Creating ~/docker/ directory..."
 mkdir -p ~/docker
 log_info "Directory ~/docker/ created"
 
-# 6. Add myip alias
-log_info "Adding myip alias..."
-ALIAS_LINE="alias myip='function _myip(){ ip a | grep \${1:-10}; }; _myip'"
+# 8. Add useful aliases
+log_info "Adding useful aliases..."
+
+# Network and system aliases
+ALIASES="
+# Network and system aliases
+alias myip='function _myip(){ ip a | grep \${1:-10}; }; _myip'
+alias ll='ls -alF'
+alias la='ls -A'
+alias l='ls -CF'
+alias ..='cd ..'
+alias ...='cd ../..'
+alias h='htop'
+alias df='df -h'
+alias du='du -h'
+alias free='free -h'
+alias ports='ss -tulpn'
+"
 
 # Add to .bashrc if not already present
 if ! grep -q "alias myip=" ~/.bashrc; then
     echo "" >> ~/.bashrc
     echo "# Custom aliases" >> ~/.bashrc
-    echo "$ALIAS_LINE" >> ~/.bashrc
-    log_info "myip alias added to ~/.bashrc"
+    echo "$ALIASES" >> ~/.bashrc
+    log_info "Useful aliases added to ~/.bashrc"
 else
-    log_warn "myip alias already exists in ~/.bashrc"
+    log_warn "Aliases already exist in ~/.bashrc"
 fi
 
 # Add to current session
-eval "$ALIAS_LINE"
+eval "alias myip='function _myip(){ ip a | grep \${1:-10}; }; _myip'"
 
-# 7. Display installation summary
-log_info "Installation completed successfully! 🎉"
+# 9. Display installation summary
+log_info "Django VM installation completed successfully! 🎉"
 echo ""
 echo "📋 Summary:"
 echo "  ✅ System updated and upgraded"
+echo "  ✅ Timezone set to America/Montreal"
+echo "  ✅ Essential tools installed (htop, curl, wget, net-tools, tree, ncdu)"
 echo "  ✅ Docker and Docker Compose installed"
 echo "  ✅ Drive extended (if LVM detected)"
 echo "  ✅ SSH key generated"
 echo "  ✅ ~/docker/ directory created"
-echo "  ✅ myip alias added"
+echo "  ✅ Useful aliases added"
 echo ""
-echo "🔄 Please log out and log back in to use Docker without sudo"
+echo "🕐 Current time: $(date)"
+echo "🌍 Timezone: $(timedatectl show --property=Timezone --value)"
+echo ""
 echo "🔑 Your SSH public key:"
 cat ~/.ssh/id_rsa.pub
+echo ""
+echo "🔄 Please log out and log back in to use Docker without sudo and activate aliases"
 echo ""
 echo "💡 Test your installation:"
 echo "  docker --version"
 echo "  docker compose version"
 echo "  docker-compose --version"
+echo "  htop"
 echo "  myip"
 echo "  df -h"
+echo ""
+echo "🐍 Ready for Django development with Docker!"
+echo "  cd ~/docker"
+echo "  mkdir my-django-project"
+echo "  cd my-django-project"
+echo "  # Create your docker-compose.yml here"
