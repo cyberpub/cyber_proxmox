@@ -58,18 +58,29 @@ show_banner() {
 }
 
 confirm_installation() {
-    echo -n "🤔 Voulez-vous continuer avec l'installation ? (y/N): "
-    read -r response
-    case "$response" in
-        [yY][eE][sS]|[yY]|[oO][uU][iI]|[oO])
-            echo "✅ Installation confirmée !"
-            return 0
-            ;;
-        *)
-            echo "❌ Installation annulée."
-            exit 0
-            ;;
-    esac
+    # Check if we can read from terminal (not piped from curl)
+    if [ -t 0 ]; then
+        echo -n "🤔 Voulez-vous continuer avec l'installation ? (y/N): "
+        read -r response
+        case "$response" in
+            [yY][eE][sS]|[yY]|[oO][uU][iI]|[oO])
+                echo "✅ Installation confirmée !"
+                return 0
+                ;;
+            *)
+                echo "❌ Installation annulée."
+                exit 0
+                ;;
+        esac
+    else
+        # When piped from curl, auto-confirm with a delay
+        echo "🤔 Voulez-vous continuer avec l'installation ? (y/N): "
+        echo "⏳ Exécution via curl détectée - démarrage automatique dans 5 secondes..."
+        echo "   (Appuyez Ctrl+C pour annuler)"
+        sleep 5
+        echo "✅ Installation confirmée automatiquement !"
+        return 0
+    fi
 }
 
 init_sudo() {
@@ -122,9 +133,15 @@ source_functions() {
 
 # Main installation function
 main() {
-    # Show banner and get confirmation
+    # Show banner and get confirmation (unless --yes flag is used)
     show_banner
-    confirm_installation
+    
+    # Check for --yes or -y flag to skip confirmation
+    if [[ "$1" == "--yes" ]] || [[ "$1" == "-y" ]]; then
+        echo "✅ Installation confirmée via paramètre --yes"
+    else
+        confirm_installation
+    fi
     
     # Initialize sudo early
     init_sudo
