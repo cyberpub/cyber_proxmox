@@ -1,68 +1,182 @@
 # Cyber Proxmox
 
-🚀 Collection de scripts d'installation spécialisés pour machines virtuelles Ubuntu 24.04 sur Proxmox
+🚀 Framework modulaire d'installation et de gestion pour machines virtuelles Ubuntu 24.04 sur Proxmox
 
 ## 📋 Description
 
-Ce projet fournit une collection de scripts d'installation modulaires qui configurent automatiquement des VMs Ubuntu 24.04 selon différents cas d'usage. Chaque script est optimisé pour un rôle spécifique dans votre infrastructure.
+Ce projet fournit un framework complet avec des scripts modulaires et des utilitaires de conteneurs pour automatiser le déploiement et la gestion d'infrastructure sur Proxmox. L'architecture modulaire permet une maintenance facile et une réutilisabilité maximale.
 
-## 🎯 Scripts disponibles
+## 🏗️ Architecture modulaire
 
-### 🐍 Django VM (`scripts/django.sh`)
-**Parfait pour :** Applications web Django avec Docker Compose
+### 📁 **Structure du projet**
+
+```
+cyber_proxmox/
+├── scripts/                    # Scripts d'installation principaux
+│   ├── django.sh              # Installation VM Django (modulaire)
+│   ├── tailscale.sh           # Installation VM Tailscale (modulaire)
+│   └── proxmox.sh             # Installation Cloudflare Tunnel sur Proxmox
+├── functions/                  # Modules fonctionnels réutilisables
+│   ├── install_docker.sh      # Installation Docker
+│   ├── configure_timezone.sh  # Configuration timezone
+│   ├── generate_ssh_key.sh    # Génération clés SSH
+│   ├── configure_swap.sh      # Configuration swap
+│   ├── extend_lvm.sh          # Extension LVM
+│   ├── install_tools.sh       # Installation outils système
+│   └── configure_aliases.sh   # Configuration aliases
+├── container_scripts/          # Générateurs de stacks Docker
+│   ├── django_stack.sh        # Stack Django complète
+│   ├── monitoring_stack.sh    # Stack Prometheus/Grafana
+│   ├── database_stack.sh      # Stacks PostgreSQL/MySQL/Redis
+│   ├── proxy_stack.sh         # Stacks Nginx/Traefik
+│   └── cloudflared_stack.sh   # Stack Cloudflare Tunnel containerisé
+└── readme.md                  # Cette documentation
+```
+
+## 🎯 Scripts d'installation VM
+
+### 🐍 **Django VM** (`scripts/django.sh`)
+**Parfait pour :** Applications web Django avec écosystème complet
 
 **Fonctionnalités :**
-- ✅ **Base système** - Mise à jour complète Ubuntu 24.04
-- ✅ **Timezone** - Configuré sur America/Montreal
-- ✅ **Outils essentiels** - htop, curl, wget, net-tools, tree, ncdu
-- ✅ **Docker & Docker Compose** - Installation complète (plugin + binaire)
-- ✅ **Extension de disque** - Détection et extension automatique LVM
-- ✅ **Swap optimisé** - 2GB avec swappiness=10 pour performances
-- ✅ **Clés SSH** - Génération RSA 4096 bits sécurisées
-- ✅ **Répertoire Docker** - Dossier `~/docker/` pour vos projets Django
-- ✅ **Aliases utiles** - myip, htop (h), ll, la, df, du, free, ports
+- ✅ **Architecture modulaire** - Utilise les fonctions réutilisables
+- ✅ **Base système** - Ubuntu 24.04 + timezone Montreal
+- ✅ **Outils développement** - htop, git, nano, vim, curl, wget, tree, ncdu
+- ✅ **Docker complet** - Engine + Compose (plugin + binaire)
+- ✅ **Optimisations** - LVM extension + swap 2GB optimisé
+- ✅ **Sécurité** - Clés SSH RSA 4096 + aliases pratiques
+- ✅ **Intégration** - Accès direct aux container_scripts
 
-### 🔒 Tailscale VM (`scripts/tailscale.sh`)
-**Parfait pour :** VPN mesh, subnet routing et proxy réseau
+### 🔒 **Tailscale VM** (`scripts/tailscale.sh`)
+**Parfait pour :** VPN mesh, subnet routing et sécurité réseau
 
 **Fonctionnalités :**
-- ✅ **Base système** - Mise à jour complète Ubuntu 24.04
-- ✅ **Tailscale** - Installation et configuration VPN mesh
-- ✅ **Subnet Router** - Configuration pour router les subnets
-- ✅ **Exit Node** - Capacité de servir de proxy/exit node
-- ✅ **Firewall UFW** - Règles de sécurité optimisées
-- ✅ **Outils réseau** - Diagnostics et surveillance réseau
-- ✅ **Scripts helper** - Commandes simplifiées (ts-setup, net-diag)
+- ✅ **Architecture modulaire** - Fonctions réseau spécialisées
+- ✅ **Tailscale complet** - VPN mesh + subnet router + exit node
+- ✅ **Outils réseau** - tcpdump, nmap, iotop, nethogs, iftop, vnstat
+- ✅ **Sécurité** - UFW configuré + IP forwarding + SSH
+- ✅ **Helpers** - Scripts ts-setup et net-diag intégrés
+- ✅ **Monitoring** - Diagnostics réseau avancés
+
+### ☁️ **Proxmox Cloudflare** (`scripts/proxmox.sh`)
+**Parfait pour :** Installation Cloudflare Tunnel directement sur l'OS Proxmox
+
+**Fonctionnalités :**
+- ✅ **Installation native** - Cloudflared installé sur l'OS Proxmox
+- ✅ **Service systemd** - Gestion avec systemctl
+- ✅ **Configuration automatique** - Token Cloudflare intégré
+- ✅ **Validation** - Vérification du statut et de la santé
+- ✅ **Documentation** - Aide et instructions complètes
 
 ## 🚀 Installation rapide
 
-### 🐍 Pour une VM Django
+### 🐍 **Django VM**
 
-**Méthode 1 : Installation directe (recommandée)**
 ```bash
+# Installation directe
 curl -fsSL https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/scripts/django.sh | bash
-```
 
-**Méthode 2 : Téléchargement puis exécution**
-```bash
+# Ou téléchargement puis exécution
 wget https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/scripts/django.sh
 chmod +x django.sh
 ./django.sh
 ```
 
-### 🔒 Pour une VM Tailscale
+### 🔒 **Tailscale VM**
 
-**Méthode 1 : Installation directe (recommandée)**
 ```bash
+# Installation directe
 curl -fsSL https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/scripts/tailscale.sh | bash
-```
 
-**Méthode 2 : Téléchargement puis exécution**
-```bash
+# Ou téléchargement puis exécution
 wget https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/scripts/tailscale.sh
 chmod +x tailscale.sh
 ./tailscale.sh
 ```
+
+### 🔧 **Utilisation des fonctions individuelles**
+
+```bash
+# Installer seulement Docker
+curl -fsSL https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/functions/install_docker.sh | bash
+
+# Configurer seulement le timezone
+curl -fsSL https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/functions/configure_timezone.sh | bash
+
+# Générer seulement les clés SSH
+curl -fsSL https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/functions/generate_ssh_key.sh | bash
+```
+
+## 🐳 Container Scripts - Stacks prêtes à l'emploi
+
+### 🐍 **Django Stack** - Environnement de développement complet
+
+```bash
+# Créer une stack Django complète
+curl -fsSL https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/container_scripts/django_stack.sh | bash -s my-django-project
+
+# Contenu généré :
+# ├── docker-compose.yml    # Django + PostgreSQL + Redis + Nginx
+# ├── Dockerfile           # Image Django optimisée
+# ├── requirements.txt     # Dépendances Python
+# ├── nginx.conf          # Configuration reverse proxy
+# ├── manage.sh           # Script de gestion (start/stop/logs/migrate)
+# └── .env.example        # Variables d'environnement
+```
+
+### 📊 **Monitoring Stack** - Prometheus + Grafana
+
+```bash
+# Créer une stack de monitoring
+curl -fsSL https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/container_scripts/monitoring_stack.sh | bash -s monitoring
+
+# Services inclus :
+# - Prometheus (http://localhost:9090)
+# - Grafana (http://localhost:3000 - admin/admin123)
+# - Node Exporter (métriques système)
+# - cAdvisor (métriques conteneurs)
+```
+
+### 🗄️ **Database Stacks** - PostgreSQL, MySQL, Redis
+
+```bash
+# PostgreSQL + pgAdmin
+curl -fsSL https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/container_scripts/database_stack.sh | bash -s postgresql
+
+# MySQL + phpMyAdmin
+curl -fsSL https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/container_scripts/database_stack.sh | bash -s mysql
+
+# Redis + Redis Commander
+curl -fsSL https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/container_scripts/database_stack.sh | bash -s redis
+```
+
+### 🌐 **Proxy Stacks** - Nginx ou Traefik
+
+```bash
+# Nginx reverse proxy + Let's Encrypt
+curl -fsSL https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/container_scripts/proxy_stack.sh | bash -s nginx
+
+# Traefik avec dashboard et SSL automatique
+curl -fsSL https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/container_scripts/proxy_stack.sh | bash -s traefik
+```
+
+### ☁️ **Cloudflare Tunnel** - Installation sur Proxmox
+
+```bash
+# Installation directe sur l'OS Proxmox (nécessite le token Cloudflare)
+curl -fsSL https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/container_scripts/proxmox.sh | sudo bash -s YOUR_CLOUDFLARE_TOKEN
+
+# Ou téléchargement puis exécution
+wget https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/container_scripts/proxmox.sh
+chmod +x proxmox.sh
+sudo ./proxmox.sh YOUR_CLOUDFLARE_TOKEN
+```
+
+**Pour obtenir votre token Cloudflare :**
+1. Allez sur https://one.dash.cloudflare.com/
+2. Naviguez vers Zero Trust > Access > Tunnels
+3. Créez un nouveau tunnel ou sélectionnez un existant
+4. Copiez le token depuis la commande d'installation
 
 ## 🔧 Prérequis
 
@@ -195,40 +309,55 @@ chmod +x tailscale.sh
 
 ## 🛠️ Détails techniques
 
-### Structure du projet
+### Architecture détaillée
 
 ```
 cyber_proxmox/
-├── scripts/
-│   ├── django.sh       # Script pour VMs Django
-│   └── tailscale.sh    # Script pour VMs Tailscale
-└── readme.md          # Cette documentation
+├── scripts/                    # Scripts d'installation VM
+│   ├── django.sh              # Installation VM Django (modulaire)
+│   └── tailscale.sh           # Installation VM Tailscale (modulaire)
+├── functions/                  # Modules fonctionnels
+│   ├── install_docker.sh      # Installation Docker complète
+│   ├── configure_timezone.sh  # Configuration fuseau horaire
+│   ├── generate_ssh_key.sh    # Génération clés SSH sécurisées
+│   ├── configure_swap.sh      # Configuration swap optimisé
+│   ├── extend_lvm.sh          # Extension volumes LVM
+│   ├── install_tools.sh       # Outils système et réseau
+│   └── configure_aliases.sh   # Aliases bash personnalisés
+├── container_scripts/          # Générateurs de stacks
+│   ├── django_stack.sh        # Stack Django + PostgreSQL + Redis + Nginx
+│   ├── monitoring_stack.sh    # Stack Prometheus + Grafana + exporters
+│   ├── database_stack.sh      # Stacks PostgreSQL/MySQL/Redis
+│   ├── proxy_stack.sh         # Stacks Nginx/Traefik avec SSL
+│   └── proxmox.sh            # Installation Cloudflare Tunnel sur Proxmox
+└── readme.md                  # Documentation complète
 ```
 
-### Composants installés
+### 🔧 Modules fonctionnels disponibles
 
-#### 🐍 Django VM (`django.sh`)
-| Composant | Version | Description |
-|-----------|---------|-------------|
-| Timezone | America/Montreal | Fuseau horaire configuré pour Montréal |
-| System Tools | Latest | htop, curl, wget, net-tools, tree, ncdu |
-| Docker Engine | Latest | Moteur de conteneurisation |
-| Docker Compose Plugin | Latest | Orchestration de conteneurs (commande `docker compose`) |
-| Docker Compose Binary | Latest | Version standalone (commande `docker-compose`) |
-| Swap File | 2GB | Fichier swap optimisé (swappiness=10) |
-| SSH Keys | RSA 4096 | Clés de sécurité pour connexions distantes |
-| Répertoire Docker | ~/docker/ | Espace de travail pour projets Django |
-| Aliases utiles | Custom | myip, h (htop), ll, la, df, du, free, ports |
+| Module | Fonction | Description |
+|--------|----------|-------------|
+| `install_docker.sh` | `install_docker()` | Installation Docker Engine + Compose (plugin + binaire) |
+| `configure_timezone.sh` | `configure_timezone(timezone)` | Configuration fuseau horaire (défaut: America/Montreal) |
+| `generate_ssh_key.sh` | `generate_ssh_key(type, size, file)` | Génération clés SSH (défaut: RSA 4096) |
+| `configure_swap.sh` | `configure_swap(size, file, swappiness)` | Configuration swap optimisé (défaut: 2GB) |
+| `extend_lvm.sh` | `extend_lvm()` | Extension automatique volumes LVM |
+| `install_tools.sh` | `install_essential_tools()` | Outils système (htop, git, curl, etc.) |
+| `install_tools.sh` | `install_network_tools()` | Outils réseau (tcpdump, nmap, iftop, etc.) |
+| `configure_aliases.sh` | `configure_aliases(type)` | Aliases bash (standard/django/tailscale/all) |
 
-#### 🔒 Tailscale VM (`tailscale.sh`)
-| Composant | Version | Description |
-|-----------|---------|-------------|
-| Tailscale | Latest | Client VPN mesh avec subnet routing |
-| UFW Firewall | Default | Pare-feu configuré pour Tailscale |
-| SSH Keys | RSA 4096 | Clés de sécurité pour connexions distantes |
-| Network Tools | Various | net-tools, iptables, htop, ncdu, jq |
-| Helper Scripts | Custom | ts-setup, net-diag pour gestion simplifiée |
-| IP Forwarding | Enabled | Configuration pour subnet router/exit node |
+### 🐳 Container Scripts disponibles
+
+| Script | Fonction | Description |
+|--------|----------|-------------|
+| `django_stack.sh` | `create_django_stack(name, db)` | Stack Django + PostgreSQL/MySQL + Redis + Nginx |
+| `monitoring_stack.sh` | `create_monitoring_stack(name)` | Stack Prometheus + Grafana + Node Exporter + cAdvisor |
+| `database_stack.sh` | `create_postgresql_stack(name)` | PostgreSQL + pgAdmin avec backup/restore |
+| `database_stack.sh` | `create_mysql_stack(name)` | MySQL + phpMyAdmin avec scripts de gestion |
+| `database_stack.sh` | `create_redis_stack(name)` | Redis + Redis Commander avec configuration |
+| `proxy_stack.sh` | `create_nginx_stack(name)` | Nginx reverse proxy + Let's Encrypt SSL |
+| `proxy_stack.sh` | `create_traefik_stack(name)` | Traefik avec dashboard + SSL automatique |
+| `proxmox.sh` | `install_cloudflare_tunnel(token)` | Installation Cloudflare Tunnel sur Proxmox OS |
 
 ### Extension de disque
 
@@ -326,21 +455,25 @@ Tous les scripts affichent des messages colorés :
 ## 🏗️ Roadmap
 
 ### ✅ Terminé
-- [x] Script Django VM avec Docker
-- [x] Script Tailscale VM avec subnet routing
-- [x] Documentation modulaire complète
-- [x] Extension automatique LVM
-- [x] Scripts helper pour Tailscale
+- [x] **Architecture modulaire** - Fonctions réutilisables et maintenables
+- [x] **Scripts VM complets** - Django et Tailscale avec versions modulaires
+- [x] **Container Scripts** - Stacks prêtes pour Django, monitoring, databases, proxy
+- [x] **Documentation complète** - Guide d'utilisation et référence API
+- [x] **Fonctions individuelles** - Utilisables indépendamment
+- [x] **Optimisations système** - LVM, swap, timezone, sécurité
 
 ### 🔄 En cours
-- [ ] Tests sur différentes configurations Proxmox
-- [ ] Optimisations performances réseau
+- [ ] Tests automatisés pour tous les modules
+- [ ] CI/CD pour validation des scripts
+- [ ] Métriques et monitoring des déploiements
 
 ### 📋 Prévu
-- [ ] Script pour VM de monitoring (Prometheus/Grafana)
-- [ ] Script pour VM de base de données (PostgreSQL/MySQL)
-- [ ] Script pour VM de reverse proxy (Nginx/Traefik)
-- [ ] Templates Terraform pour Proxmox
+- [ ] **Templates Terraform** - Infrastructure as Code pour Proxmox
+- [ ] **Scripts Kubernetes** - Migration vers orchestration
+- [ ] **Backup automatisé** - Sauvegarde et restauration
+- [ ] **Monitoring centralisé** - Observabilité multi-VM
+- [ ] **Interface web** - Dashboard de gestion
+- [ ] **API REST** - Contrôle programmatique
 
 ## 🤝 Contribution
 
@@ -352,14 +485,45 @@ Les contributions sont les bienvenues ! N'hésitez pas à :
 4. Pousser vers la branche (`git push origin feature/nouvelle-vm`)
 5. Ouvrir une Pull Request
 
-### Ajouter un nouveau script VM
+### 🔧 Ajouter de nouvelles fonctionnalités
 
-Pour ajouter un nouveau type de VM :
+**Créer un nouveau module fonctionnel :**
 
-1. Créez `scripts/nom-vm.sh` basé sur `django.sh`
-2. Adaptez les installations spécifiques
-3. Mettez à jour cette documentation
-4. Ajoutez les commandes de test appropriées
+1. Créez `functions/ma_fonction.sh` avec la structure :
+   ```bash
+   #!/bin/bash
+   ma_fonction() {
+       local param1="${1:-default}"
+       local log_prefix="[MA_FONCTION]"
+       
+       echo -e "\033[0;32m${log_prefix}\033[0m Description..."
+       # Votre logique ici
+       return 0
+   }
+   
+   # Exécution directe
+   if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+       ma_fonction "$@"
+   fi
+   ```
+
+2. Testez individuellement : `./functions/ma_fonction.sh`
+3. Intégrez dans les scripts VM principaux
+4. Documentez dans le README
+
+**Créer un nouveau container script :**
+
+1. Créez `container_scripts/ma_stack.sh`
+2. Implémentez les fonctions de génération
+3. Ajoutez un script `manage.sh` pour la gestion
+4. Testez la stack complète
+
+**Créer un nouveau script VM :**
+
+1. Créez `scripts/ma_vm.sh`
+2. Sourcez les fonctions nécessaires depuis `functions/`
+3. Composez votre workflow d'installation
+4. Ajoutez les instructions d'installation au README
 
 ## 📝 Licence
 

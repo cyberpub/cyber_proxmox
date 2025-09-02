@@ -1,12 +1,14 @@
 #!/bin/bash
 
-# Cyber Proxmox Tailscale VM Installation Script
+# Cyber Proxmox Tailscale VM Installation Script (Modular Version)
 # Compatible with Ubuntu 24.04 Server
-# This script will install Tailscale, configure subnet routing, and setup proxy capabilities
+# Uses modular functions for better maintainability
 
 set -e  # Exit on any error
 
-echo "🔒 Starting Cyber Proxmox Tailscale VM setup..."
+# Script directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+FUNCTIONS_DIR="$(dirname "$SCRIPT_DIR")/functions"
 
 # Colors for output
 RED='\033[0;31m'
@@ -31,148 +33,91 @@ log_step() {
     echo -e "${BLUE}[STEP]${NC} $1"
 }
 
-# 1. System update and upgrade
-log_step "Updating system packages..."
-sudo apt update && sudo apt upgrade -y
-
-# 2. Install essential network tools
-log_step "Installing network utilities..."
-sudo apt install -y \
-    curl \
-    wget \
-    net-tools \
-    iptables-persistent \
-    ufw \
-    htop \
-    ncdu \
-    tree \
-    jq
-
-# 3. Install Tailscale
-log_step "Installing Tailscale..."
-
-# Add Tailscale's package signing key and repository
-curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/noble.noarmor.gpg | sudo tee /usr/share/keyrings/tailscale-archive-keyring.gpg >/dev/null
-curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/noble.tailscale-keyring.list | sudo tee /etc/apt/sources.list.d/tailscale.list
+# Source function modules
+source_functions() {
+    local functions=(
+        "configure_timezone.sh"
+        "generate_ssh_key.sh"
+        "extend_lvm.sh"
+        "install_tools.sh"
+        "configure_aliases.sh"
+    )
+    
+    for func in "${functions[@]}"; do
+        if [ -f "$FUNCTIONS_DIR/$func" ]; then
+            source "$FUNCTIONS_DIR/$func"
+        else
+            log_warn "Function file not found: $func"
+        fi
+    done
+}
 
 # Install Tailscale
-sudo apt update
-sudo apt install -y tailscale
-
-log_info "Tailscale installed successfully!"
-
-# 4. Extend drive (LVM) - Same as Django script
-log_step "Extending drive space..."
-
-# Check if we're using LVM
-if [ -e /dev/mapper/ubuntu--vg-ubuntu--lv ]; then
-    log_info "LVM detected, extending logical volume..."
+install_tailscale() {
+    local log_prefix="[TAILSCALE]"
     
-    # Get the main disk device (usually sda)
-    MAIN_DISK=$(lsblk -no pkname /dev/mapper/ubuntu--vg-ubuntu--lv | head -1)
-    PARTITION_NUM=$(lsblk -no name /dev/mapper/ubuntu--vg-ubuntu--lv | grep -o '[0-9]*$' | head -1)
+    echo -e "\033[0;32m${log_prefix}\033[0m Installing Tailscale..."
     
-    if [ -z "$PARTITION_NUM" ]; then
-        PARTITION_NUM=3  # Default to partition 3 for Ubuntu LVM
-    fi
+    # Add Tailscale's package signing key and repository
+    curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/noble.noarmor.gpg | sudo tee /usr/share/keyrings/tailscale-archive-keyring.gpg >/dev/null
+    curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/noble.tailscale-keyring.list | sudo tee /etc/apt/sources.list.d/tailscale.list
     
-    PARTITION="/dev/${MAIN_DISK}${PARTITION_NUM}"
+    # Install Tailscale
+    sudo apt update
+    sudo apt install -y tailscale
     
-    log_info "Extending partition ${PARTITION}..."
+    echo -e "\033[0;32m${log_prefix}\033[0m Tailscale installed successfully!"
     
-    # Extend the partition using parted
-    sudo parted /dev/${MAIN_DISK} ---pretend-input-tty <<EOF
-resizepart ${PARTITION_NUM}
-100%
-Yes
-quit
-EOF
+    return 0
+}
 
-    # Resize physical volume
-    sudo pvresize ${PARTITION}
+# Configure IP forwarding
+configure_ip_forwarding() {
+    local log_prefix="[IP-FORWARD]"
     
-    # Extend logical volume
-    sudo lvextend -l +100%FREE /dev/ubuntu-vg/ubuntu-lv
+    echo -e "\033[0;32m${log_prefix}\033[0m Configuring IP forwarding..."
     
-    # Resize filesystem
-    sudo resize2fs /dev/ubuntu-vg/ubuntu-lv
+    echo 'net.ipv4.ip_forward = 1' | sudo tee -a /etc/sysctl.conf
+    echo 'net.ipv6.conf.all.forwarding = 1' | sudo tee -a /etc/sysctl.conf
+    sudo sysctl -p
     
-    log_info "Drive extension completed!"
-else
-    log_warn "LVM not detected, skipping drive extension. You may need to extend manually."
-fi
+    echo -e "\033[0;32m${log_prefix}\033[0m IP forwarding enabled for subnet routing"
+    
+    return 0
+}
 
-# 5. Generate SSH key
-log_step "Generating SSH key..."
-if [ ! -f ~/.ssh/id_rsa ]; then
-    ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa -N ""
-    log_info "SSH key generated at ~/.ssh/id_rsa"
-else
-    log_warn "SSH key already exists, skipping generation"
-fi
+# Configure UFW firewall
+configure_firewall() {
+    local log_prefix="[FIREWALL]"
+    
+    echo -e "\033[0;32m${log_prefix}\033[0m Configuring firewall..."
+    
+    # Enable UFW
+    sudo ufw --force enable
+    
+    # Allow SSH
+    sudo ufw allow ssh
+    
+    # Allow Tailscale
+    sudo ufw allow 41641/udp
+    
+    # Allow forwarding for Tailscale interface
+    sudo ufw route allow in on tailscale0
+    sudo ufw route allow out on tailscale0
+    
+    echo -e "\033[0;32m${log_prefix}\033[0m Firewall configured for Tailscale"
+    
+    return 0
+}
 
-# 6. Configure IP forwarding for subnet routing
-log_step "Configuring IP forwarding..."
-echo 'net.ipv4.ip_forward = 1' | sudo tee -a /etc/sysctl.conf
-echo 'net.ipv6.conf.all.forwarding = 1' | sudo tee -a /etc/sysctl.conf
-sudo sysctl -p
-
-log_info "IP forwarding enabled for subnet routing"
-
-# 7. Configure UFW firewall
-log_step "Configuring firewall..."
-
-# Enable UFW
-sudo ufw --force enable
-
-# Allow SSH
-sudo ufw allow ssh
-
-# Allow Tailscale
-sudo ufw allow 41641/udp
-
-# Allow forwarding for Tailscale interface (will be configured after tailscale up)
-sudo ufw route allow in on tailscale0
-sudo ufw route allow out on tailscale0
-
-log_info "Firewall configured for Tailscale"
-
-# 8. Add network aliases
-log_step "Adding network aliases..."
-
-# myip alias (same as Django script)
-MYIP_ALIAS="alias myip='function _myip(){ ip a | grep \${1:-10}; }; _myip'"
-
-# Additional network aliases for Tailscale management
-TAILSCALE_ALIASES="
-# Tailscale aliases
-alias ts='tailscale'
-alias tsstatus='tailscale status'
-alias tsip='tailscale ip'
-alias tsroutes='tailscale status --peers'
-alias netstat-listen='netstat -tlnp'
-alias ports='ss -tulpn'
-"
-
-# Add to .bashrc if not already present
-if ! grep -q "alias myip=" ~/.bashrc; then
-    echo "" >> ~/.bashrc
-    echo "# Network aliases" >> ~/.bashrc
-    echo "$MYIP_ALIAS" >> ~/.bashrc
-    echo "$TAILSCALE_ALIASES" >> ~/.bashrc
-    log_info "Network aliases added to ~/.bashrc"
-else
-    log_warn "Network aliases already exist in ~/.bashrc"
-fi
-
-# Add to current session
-eval "$MYIP_ALIAS"
-
-# 9. Create helper scripts
-log_step "Creating helper scripts..."
-
-# Create tailscale management script
-sudo tee /usr/local/bin/ts-setup > /dev/null <<'EOF'
+# Create helper scripts
+create_helper_scripts() {
+    local log_prefix="[HELPERS]"
+    
+    echo -e "\033[0;32m${log_prefix}\033[0m Creating helper scripts..."
+    
+    # Create tailscale management script
+    sudo tee /usr/local/bin/ts-setup > /dev/null <<'EOF'
 #!/bin/bash
 # Tailscale setup helper script
 
@@ -198,10 +143,10 @@ echo "Note: Replace 192.168.1.0/24 with your actual subnet"
 echo "After running 'tailscale up', visit the provided URL to authenticate"
 EOF
 
-sudo chmod +x /usr/local/bin/ts-setup
-
-# Create network diagnostic script
-sudo tee /usr/local/bin/net-diag > /dev/null <<'EOF'
+    sudo chmod +x /usr/local/bin/ts-setup
+    
+    # Create network diagnostic script
+    sudo tee /usr/local/bin/net-diag > /dev/null <<'EOF'
 #!/bin/bash
 # Network diagnostic script
 
@@ -227,44 +172,109 @@ echo "=== Firewall Status ==="
 sudo ufw status verbose
 EOF
 
-sudo chmod +x /usr/local/bin/net-diag
+    sudo chmod +x /usr/local/bin/net-diag
+    
+    echo -e "\033[0;32m${log_prefix}\033[0m Helper scripts created: ts-setup, net-diag"
+    
+    return 0
+}
 
-log_info "Helper scripts created: ts-setup, net-diag"
+# Main installation function
+main() {
+    echo "🔒 Starting Cyber Proxmox Tailscale VM setup (Modular)..."
+    
+    # Source all function modules
+    log_step "Loading function modules..."
+    source_functions
+    
+    # 1. System update and upgrade
+    log_step "Updating system packages..."
+    sudo apt update && sudo apt upgrade -y
+    
+    # 2. Configure timezone
+    log_step "Configuring timezone..."
+    configure_timezone "America/Montreal"
+    
+    # 3. Install network tools
+    log_step "Installing network tools..."
+    install_network_tools
+    
+    # 4. Install Tailscale
+    log_step "Installing Tailscale..."
+    install_tailscale
+    
+    # 5. Extend drive (LVM)
+    log_step "Extending drive..."
+    extend_lvm
+    
+    # 6. Generate SSH key
+    log_step "Generating SSH key..."
+    generate_ssh_key "rsa" "4096" "~/.ssh/id_rsa"
+    
+    # 7. Configure IP forwarding
+    log_step "Configuring IP forwarding..."
+    configure_ip_forwarding
+    
+    # 8. Configure firewall
+    log_step "Configuring firewall..."
+    configure_firewall
+    
+    # 9. Configure aliases
+    log_step "Configuring aliases..."
+    configure_aliases "tailscale"
+    
+    # 10. Create helper scripts
+    log_step "Creating helper scripts..."
+    create_helper_scripts
+    
+    # 11. Display installation summary
+    display_summary
+}
 
-# 10. Display installation summary
-log_info "Tailscale VM installation completed successfully! 🎉"
-echo ""
-echo "📋 Summary:"
-echo "  ✅ System updated and upgraded"
-echo "  ✅ Network tools installed"
-echo "  ✅ Tailscale installed"
-echo "  ✅ Drive extended (if LVM detected)"
-echo "  ✅ SSH key generated"
-echo "  ✅ IP forwarding enabled"
-echo "  ✅ Firewall configured"
-echo "  ✅ Network aliases added"
-echo "  ✅ Helper scripts created"
-echo ""
-echo "🔑 Your SSH public key:"
-cat ~/.ssh/id_rsa.pub
-echo ""
-echo "🚀 Next steps:"
-echo "  1. Logout and login to activate aliases"
-echo "  2. Run 'ts-setup' for Tailscale configuration help"
-echo "  3. Start Tailscale: sudo tailscale up"
-echo "  4. Visit the authentication URL provided"
-echo "  5. For subnet routing: sudo tailscale up --advertise-routes=YOUR_SUBNET"
-echo ""
-echo "💡 Useful commands:"
-echo "  ts-setup      - Tailscale setup helper"
-echo "  net-diag      - Network diagnostics"
-echo "  tsstatus      - Tailscale status"
-echo "  tsip          - Your Tailscale IP"
-echo "  myip          - Show network interfaces"
-echo "  ports         - Show listening ports"
-echo ""
-echo "🔧 Test your installation:"
-echo "  tailscale version"
-echo "  sudo ufw status"
-echo "  ip route show"
-echo "  df -h"
+display_summary() {
+    log_info "Tailscale VM installation completed successfully! 🎉"
+    echo ""
+    echo "📋 Summary:"
+    echo "  ✅ System updated and upgraded"
+    echo "  ✅ Timezone set to America/Montreal"
+    echo "  ✅ Network tools installed"
+    echo "  ✅ Tailscale installed"
+    echo "  ✅ Drive extended (if LVM detected)"
+    echo "  ✅ SSH key generated"
+    echo "  ✅ IP forwarding enabled"
+    echo "  ✅ Firewall configured"
+    echo "  ✅ Network aliases added"
+    echo "  ✅ Helper scripts created"
+    echo ""
+    echo "🕐 Current time: $(date)"
+    echo "🌍 Timezone: $(timedatectl show --property=Timezone --value)"
+    echo ""
+    echo "🔑 Your SSH public key:"
+    cat ~/.ssh/id_rsa.pub
+    echo ""
+    echo "🚀 Next steps:"
+    echo "  1. Logout and login to activate aliases"
+    echo "  2. Run 'ts-setup' for Tailscale configuration help"
+    echo "  3. Start Tailscale: sudo tailscale up"
+    echo "  4. Visit the authentication URL provided"
+    echo "  5. For subnet routing: sudo tailscale up --advertise-routes=YOUR_SUBNET"
+    echo ""
+    echo "💡 Useful commands:"
+    echo "  ts-setup      - Tailscale setup helper"
+    echo "  net-diag      - Network diagnostics"
+    echo "  tsstatus      - Tailscale status"
+    echo "  tsip          - Your Tailscale IP"
+    echo "  myip          - Show network interfaces"
+    echo "  ports         - Show listening ports"
+    echo ""
+    echo "🔧 Test your installation:"
+    echo "  tailscale version"
+    echo "  sudo ufw status"
+    echo "  ip route show"
+    echo "  df -h"
+}
+
+# Run main function if script is executed directly
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi
