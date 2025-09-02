@@ -41,7 +41,7 @@ cyber_proxmox/
 **Fonctionnalités :**
 - ✅ **Architecture modulaire** - Utilise les fonctions réutilisables
 - ✅ **Base système** - Ubuntu 24.04 + timezone Montreal
-- ✅ **Outils développement** - htop, git, nano, vim, curl, wget, tree, ncdu
+- ✅ **Outils développement** - htop, git, nano, vim, curl, wget, tree, ncdu, make
 - ✅ **Docker complet** - Engine + Compose (plugin + binaire)
 - ✅ **Optimisations** - LVM extension + swap 2GB optimisé
 - ✅ **Sécurité** - Clés SSH RSA 4096 + aliases pratiques

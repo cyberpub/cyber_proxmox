@@ -21,6 +21,7 @@ install_essential_tools() {
         "vim"               # Advanced text editor
         "unzip"             # Archive extractor
         "jq"                # JSON processor
+        "make"              # Build automation tool
         "cloud-guest-utils" # Contains growpart for disk extension
     )
     

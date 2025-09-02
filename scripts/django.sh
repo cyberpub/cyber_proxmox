@@ -205,7 +205,7 @@ display_summary() {
     echo "📋 Summary:"
     echo "  ✅ System updated and upgraded"
     echo "  ✅ Timezone set to America/Montreal"
-    echo "  ✅ Essential tools installed (htop, curl, wget, net-tools, tree, ncdu, git, nano, vim)"
+    echo "  ✅ Essential tools installed (htop, curl, wget, net-tools, tree, ncdu, git, nano, vim, make)"
     echo "  ✅ Docker and Docker Compose installed"
     echo "  ✅ 2GB swap file configured"
     echo "  ✅ SSH key generated"
