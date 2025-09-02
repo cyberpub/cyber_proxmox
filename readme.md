@@ -73,14 +73,13 @@ cyber_proxmox/
 ### 🐍 **Django VM**
 
 ```bash
-# Installation directe
-curl -fsSL https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/scripts/django.sh | bash
-
-# Ou téléchargement puis exécution
+# Méthode recommandée (avec confirmation interactive)
 wget https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/scripts/django.sh
 chmod +x django.sh
 ./django.sh
 ```
+
+> **Note :** L'installation via `curl | bash` peut avoir des problèmes avec la confirmation interactive. Utilisez la méthode wget pour une expérience optimale.
 
 ### 🔒 **Tailscale VM**
 
@@ -464,6 +463,14 @@ sudo ufw route allow out on tailscale0
 ```bash
 # Génération manuelle
 ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa
+```
+
+**Extension LVM échouée (disque pas étendu)**
+```bash
+# Script de correction automatique
+wget https://raw.githubusercontent.com/cyberpub/cyber_proxmox/main/scripts/fix_lvm.sh
+chmod +x fix_lvm.sh
+./fix_lvm.sh
 ```
 
 ### Logs et débogage
