@@ -291,7 +291,6 @@ display_summary() {
     echo "  df -h"
 }
 
-# Run main function if script is executed directly
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    main "$@"
-fi
+# Run main function - always execute when script is run
+echo "🚀 Starting Tailscale VM installation..."
+main "$@"
